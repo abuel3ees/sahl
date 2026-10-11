@@ -28,6 +28,29 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+     * Microsoft Entra ID (workforce) for ministry staff sign-in.
+     * See docs/setup/01-entra-id-staff-sign-in.md for how these values are created.
+     */
+    'entra' => [
+        'client_id' => env('ENTRA_CLIENT_ID'),
+        'client_secret' => env('ENTRA_CLIENT_SECRET'),
+        'redirect' => env('ENTRA_REDIRECT_URI'),
+        'tenant' => env('ENTRA_TENANT_ID'),
+    ],
+
+    /*
+     * Microsoft Entra External ID (external tenant) for citizen sign-in.
+     * See docs/setup/02-entra-external-id-citizen-sign-in.md for how these values are created.
+     */
+    'entra_citizen' => [
+        'client_id' => env('ENTRA_CITIZEN_CLIENT_ID'),
+        'client_secret' => env('ENTRA_CITIZEN_CLIENT_SECRET'),
+        'redirect' => env('ENTRA_CITIZEN_REDIRECT_URI'),
+        'tenant' => env('ENTRA_CITIZEN_TENANT_ID'),
+        'domain' => env('ENTRA_CITIZEN_DOMAIN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

@@ -3,7 +3,150 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/*
+ * Sahl design tokens: the "Modernist" system from the design file.
+ * Archivo + IBM Plex Sans Arabic (body) + Reem Kufi (Arabic display), one red accent,
+ * 2px rules, zero radius. Latin text renders in Archivo; Arabic falls through to the
+ * Arabic face in the same stack, so no per-language font switching is needed.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: var(--font-archivo), var(--font-ibm-plex-sans-arabic), system-ui, sans-serif;
+    --font-display: var(--font-archivo), var(--font-reem-kufi), sans-serif;
+    --font-kufi: var(--font-reem-kufi), sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --color-paper: #f3f2f2;
+    --color-surface: #eae9e9;
+    --color-ink: #201e1d;
+    --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+
+    --color-accent: #ec3013;
+    --color-accent-100: #fff2ef;
+    --color-accent-200: #ffe0d9;
+    --color-accent-300: #ffc4b8;
+    --color-accent-400: #ff9783;
+    --color-accent-500: #ff563c;
+    --color-accent-600: #dd2b0f;
+    --color-accent-700: #ae1800;
+    --color-accent-800: #7c1405;
+    --color-accent-900: #4d170e;
+
+    --color-neutral-100: #f8f4f4;
+    --color-neutral-200: #eae7e7;
+    --color-neutral-300: #d7d3d3;
+    --color-neutral-400: #bab6b6;
+    --color-neutral-500: #9b9797;
+    --color-neutral-600: #7d7979;
+    --color-neutral-700: #605d5d;
+    --color-neutral-800: #444141;
+    --color-neutral-900: #2d2b2b;
+
+    --radius-*: initial;
+
+    --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+    --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+    --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+
+    --ease-sahl: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    --animate-rise: rise 1s var(--ease-sahl) both;
+    --animate-wipe: wipe 1.6s cubic-bezier(0.7, 0, 0.2, 1) both;
+    --animate-spin-slow: turn 90s linear infinite;
+    --animate-marquee: marquee 50s linear infinite;
+    --animate-marquee-fast: marquee 40s linear infinite reverse;
+    --animate-blink: blink 1.2s steps(2) infinite;
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(28px); }
+        to { opacity: 1; transform: none; }
+    }
+    @keyframes wipe {
+        from { clip-path: inset(0 0 100% 0); }
+        to { clip-path: inset(0 0 0 0); }
+    }
+    @keyframes turn {
+        to { transform: rotate(360deg); }
+    }
+    @keyframes marquee {
+        to { transform: translateX(-50%); }
+    }
+    @keyframes blink {
+        50% { opacity: 0.25; }
+    }
+}
+
+@layer base {
+    body {
+        @apply bg-paper font-sans text-[15px] leading-[1.55] text-ink antialiased;
+    }
+
+    h1, h2, h3, h4 {
+        @apply font-display font-extrabold;
+    }
+
+    ::selection {
+        background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-accent;
+    }
+
+    /* Arabic script is never letter-spaced or upper-cased. */
+    :lang(ar) {
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+    }
+}
+
+/*
+ * Long-form documentation (rendered Markdown). Kept as plain CSS because the HTML comes
+ * from the Markdown renderer, not from JSX we control.
+ */
+@layer components {
+    .prose-sahl {
+        @apply max-w-none text-base leading-relaxed text-neutral-900;
+
+        & h2 {
+            @apply mt-16 mb-6 scroll-mt-28 border-t-2 border-divider pt-6 text-4xl tracking-tight;
+        }
+        & h3 {
+            @apply mt-10 mb-3 scroll-mt-28 text-2xl tracking-tight;
+        }
+        & p, & ul, & ol {
+            @apply my-4;
+        }
+        & ul { @apply list-disc ps-6; }
+        & ol { @apply list-decimal ps-6; }
+        & li { @apply my-1.5; }
+        & a {
+            @apply font-semibold text-accent-700 underline underline-offset-3 hover:text-accent;
+        }
+        & strong { @apply font-extrabold; }
+        /* Sections already open with a rule, so Markdown's --- separators are redundant. */
+        & hr { @apply hidden; }
+        & blockquote {
+            @apply my-6 border-s-[6px] border-accent bg-surface px-6 py-4 text-lg;
+            & p { @apply my-1; }
+        }
+        & :not(pre) > code {
+            @apply bg-surface px-1.5 py-0.5 font-mono text-[0.88em] text-accent-800;
+        }
+        & pre {
+            @apply my-6 overflow-x-auto bg-ink p-5 font-mono text-[13px] leading-relaxed text-paper;
+        }
+        & table {
+            @apply my-6 block w-full overflow-x-auto border-collapse text-[15px] md:table;
+        }
+        & th {
+            @apply border-b-2 border-divider px-3 py-2 text-start text-xs font-semibold tracking-[0.08em] text-neutral-700 uppercase;
+        }
+        & td {
+            @apply border-b border-divider px-3 py-2.5 align-top;
+        }
+        & tbody tr:hover { background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
+        & .mermaid-diagram {
+            @apply my-8 flex justify-center overflow-x-auto border-2 border-divider bg-white p-6;
+        }
+    }
 }
