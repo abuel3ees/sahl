@@ -128,10 +128,12 @@ function RequestRow({ application }: { application: Application }) {
                 <StatusBadge status={application.status} />
                 {application.certificate && (
                     <a
-                        href={application.certificate.verification_url}
+                        href={`/applications/${application.id}/certificate.pdf`}
+                        target="_blank"
+                        rel="noreferrer"
                         className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink underline decoration-2 underline-offset-4 hover:text-accent"
                     >
-                        {t({ en: 'Certificate record', ar: 'سجل الشهادة' })}
+                        {t({ en: 'Download certificate', ar: 'تنزيل الشهادة' })}
                         <ArrowIcon size={16} />
                     </a>
                 )}

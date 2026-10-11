@@ -24,3 +24,4 @@ Every step of the project, in order. Each folder is named `YYYY-MM-DD_HHMM_topic
 | 2026-10-11 22:04 | Public certificate verification page | [open](2026-10-11_2204_public-verification-page/README.md) |
 | 2026-10-11 23:20 | Citizen sign-in with Entra External ID ([setup guide](../setup/02-entra-external-id-citizen-sign-in.md)) | [open](2026-10-11_2320_citizen-sign-in-external-id/README.md) |
 | 2026-10-11 23:26 | Citizen request form and tracking | [open](2026-10-11_2326_citizen-request-form/README.md) |
+| 2026-10-11 23:39 | Certificate PDF with QR code | [open](2026-10-11_2339_certificate-pdf/README.md) |

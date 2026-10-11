@@ -61,7 +61,7 @@ export default function ApplicationShow({ application, decidedBy, canDecide }: P
                     <aside className="flex flex-col gap-12">
                         {canDecide && <DecisionPanel application={application} />}
                         {application.timeline && <TimelineSection entries={application.timeline} />}
-                        {application.certificate && <CertificateCard certificate={application.certificate} />}
+                        {application.certificate && <CertificateCard certificate={application.certificate} applicationId={application.id} />}
                     </aside>
                 </div>
             </main>
@@ -212,7 +212,7 @@ function TimelineSection({ entries }: { entries: TimelineEntry[] }) {
 
 /* ─────────────────────────── Certificate ─────────────────────────── */
 
-function CertificateCard({ certificate }: { certificate: Certificate }) {
+function CertificateCard({ certificate, applicationId }: { certificate: Certificate; applicationId: string }) {
     const { t } = useLocale();
 
     return (
@@ -241,6 +241,15 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
                     {certificate.expires_at ? <DateText value={certificate.expires_at} /> : t({ en: 'No expiry', ar: 'بلا انتهاء' })}
                 </dd>
             </dl>
+            <a
+                href={`/applications/${applicationId}/certificate.pdf`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between gap-4 border-t-2 border-ink px-5 py-3 text-[15px] font-semibold no-underline hover:bg-ink hover:text-paper"
+            >
+                {t({ en: 'Open the certificate (PDF)', ar: 'فتح الشهادة (PDF)' })}
+                <ArrowIcon size={18} />
+            </a>
             <a
                 href={certificate.verification_url}
                 target="_blank"

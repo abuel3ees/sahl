@@ -35,6 +35,7 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 | `app/Actions/Auth/SignInCitizenWithEntra.php`, `app/Auth/EntraExternalIdProvider.php` | Citizen sign-in: Entra External ID (`entra_citizen` driver, `{domain}.ciamlogin.com`). Reads the `national_id` claim. One National ID per account; an unclaimed seeded citizen is claimed by the first sign-in with that ID. Citizen home: `/account`. Request form `/services/{slug}/apply`, which reuses the API's `StoreApplicationRequest` via `Web\SubmitApplicationRequest` (adds the declaration) |
 | `app/Actions/Auth/SignInStaffWithEntra.php` | Staff sign-in: Entra ID via Socialite (`entra` driver). App role `{CODE}.Reviewer` (e.g. `MOI.Reviewer`) decides the ministry; users are linked by `entra_object_id` |
 | `app/Policies/ApplicationPolicy.php` | Who can see/decide. Cross-tenant or other people's records return **404, not 403** |
+| `app/Certificates/CertificatePdf.php` | Certificate PDF (mPDF, Arabic shaping, QR to `/verify/{code}`), from the snapshot on download. Font: `resources/fonts/ibm-plex-sans-arabic/` (OFL). Later: generate once at issue, sign with Key Vault, store in immutable Blob |
 | `resources/js/` | React 19 + TypeScript + Inertia v3. `pages/`, `layouts/`, `components/site/`, `lib/i18n.tsx` |
 | `resources/css/app.css` | Design tokens ("Modernist": Archivo / IBM Plex Sans Arabic / Reem Kufi, red `#ec3013`, 2px rules, no radius) in Tailwind v4 `@theme` |
 | `docs/api/openapi.json` | Generated Swagger file. Regenerate with `php artisan scramble:export` after any API change |
