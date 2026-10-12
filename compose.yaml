@@ -1,0 +1,40 @@
+# Local development services for Sahl. Start with `docker compose up -d`.
+#
+# Only the database runs in a container for now; PHP and Vite run on the Mac
+# (`php artisan serve --port=8123`, `npm run dev`). On Azure the same role is
+# played by Azure Database for PostgreSQL (Flexible Server), version 17.
+
+name: sahl
+
+services:
+  pgsql:
+    # Same major version as Azure Database for PostgreSQL, so local behaves like the cloud.
+    image: postgres:17-alpine
+    ports:
+      # Override with FORWARD_DB_PORT in .env if 5432 is taken on the Mac.
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: "${DB_DATABASE:-sahl}"
+      POSTGRES_USER: "${DB_USERNAME:-sahl}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
+    volumes:
+      # Data survives `docker compose down`; `docker compose down -v` wipes it.
+      - sahl-pgsql:/var/lib/postgresql/data
+    configs:
+      # Runs once, on the first start with an empty volume: the database the test suite uses.
+      - source: create-testing-database
+        target: /docker-entrypoint-initdb.d/10-create-testing-database.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE:-sahl}", "-U", "${DB_USERNAME:-sahl}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+configs:
+  create-testing-database:
+    content: |
+      SELECT 'CREATE DATABASE sahl_testing'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sahl_testing')\gexec
+
+volumes:
+  sahl-pgsql:

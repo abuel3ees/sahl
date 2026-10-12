@@ -54,7 +54,7 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 
 ## Running locally
 
-- Database: SQLite for now. Docker/Postgres comes later. Run `php artisan migrate:fresh --seed`. That includes `DemoApplicationSeeder`: 8 MOI requests, 2 of them overdue. Staff created by Entra sign-in are recreated on their next sign-in.
+- Database: **Postgres 17 in Docker** (OrbStack engine): `docker compose up -d` (`compose.yaml`, service `pgsql`, port 5432, db/user `sahl`, password `secret`). Tests use the `sahl_testing` database in the same container (`phpunit.xml`), so the container must be running for tests. Run `php artisan migrate:fresh --seed`. That includes `DemoApplicationSeeder`: 8 MOI requests, 2 of them overdue. Staff created by Entra sign-in are recreated on their next sign-in.
 - Serve on **port 8123**. Port 8000 is used by another of the user's projects (`loqmah`). Run `php artisan serve --port=8123`, plus `npm run dev`; the user often has Vite running already.
 - Open the app at **`http://localhost:8123`** (not `127.0.0.1`): Entra only returns to the registered redirect URI. Staff sign in with the Entra test reviewer (`ENTRA_*` in `.env`). Citizens sign up or sign in with Sahl ID, which is Entra External ID (`ENTRA_CITIZEN_*`).
 - Demo accounts (password `password`, API and seeded data): citizen `28763404821`, citizen `29163401177`, reviewer `reviewer@moi.sahl.test`.

@@ -318,11 +318,9 @@ php artisan scramble:export      # writes docs/api/openapi.json
 
 | Later | Notes |
 |---|---|
-| PDF certificate with QR image | Next step. The verification code and URL already exist |
-| Web sign-in, "Start request", "Track a request" and "Verify" pages | The buttons are in place; the screens come after the PDF. The API behind them already works |
-| Sign-in with Entra ID | The token sign-in here is a local stand-in |
+| Verified National ID (mock *Al-Wahah National Digital ID*) | V2. In V1 citizens self-declare it at sign-up |
 | Payment of the QAR 50 fee | The fee is stored and displayed only |
 | Document uploads, corrections, "request more info" | Needs Blob Storage |
 | Email notifications | Azure Communication Services |
 | More ministries and services | The schema already supports them (`gov_entity_id` everywhere) |
-| PostgreSQL | V1 runs on SQLite locally. The code is portable |
+| Azure Database for PostgreSQL | Locally, Postgres 17 runs in Docker (`compose.yaml`). The Azure server comes with the infrastructure |
