@@ -7,8 +7,11 @@ param administratorPassword string
 @minLength(7) // the shortest IPv4 address, e.g. 1.1.1.1
 param allowedClientIp string
 
-// Your own Entra object ID (`az ad signed-in-user show --query id -o tsv`): gets write access to the vault's secrets.
+// Your own Entra object ID (`az ad signed-in-user show --query id -o tsv`): gets write access to the vault's secrets
+// and becomes the Entra admin of the Postgres server.
 param adminPrincipalId string
+// Your sign-in name (`az ad signed-in-user show --query userPrincipalName -o tsv`): your Postgres role is named after it.
+param adminPrincipalName string
 
 // Entra app registrations (IDs, not secrets). The client secrets live in Key Vault.
 param entraTenantId string
@@ -61,6 +64,22 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
     }
     network: {
       publicNetworkAccess: 'Enabled'
+    }
+    // Two ways to log in: Entra tokens (people and managed identities) and, for now, the sahladmin password.
+    authConfig: {
+      activeDirectoryAuth: 'Enabled'
+      passwordAuth: 'Enabled'
+      tenantId: tenant().tenantId
+    }
+  }
+
+  // You, as the server's Entra admin: you can create Postgres roles for other Entra identities (the web app's).
+  resource entraAdmin 'administrators' = {
+    name: adminPrincipalId
+    properties: {
+      principalName: adminPrincipalName
+      principalType: 'User'
+      tenantId: tenant().tenantId
     }
   }
 
@@ -134,8 +153,10 @@ resource webapp 'Microsoft.Web/sites@2025-03-01' = {
         { name: 'DB_HOST', value: postgres.properties.fullyQualifiedDomainName }
         { name: 'DB_PORT', value: '5432' }
         { name: 'DB_DATABASE', value: 'sahl' }
-        { name: 'DB_USERNAME', value: administratorLogin }
-        { name: 'DB_PASSWORD', value: vaultRef(vaultName, 'db-password') }
+        // The app signs in with its managed identity: its Postgres role is named after the site, and the password
+        // is an Entra token Laravel fetches itself (App\Database\EntraPostgresConnector). No DB_PASSWORD.
+        { name: 'DB_USERNAME', value: siteName }
+        { name: 'DB_ENTRA_AUTH', value: 'true' }
         { name: 'DB_SSLMODE', value: 'require' }
         { name: 'ENTRA_TENANT_ID', value: entraTenantId }
         { name: 'ENTRA_CLIENT_ID', value: entraClientId }
