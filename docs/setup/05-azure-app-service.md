@@ -76,7 +76,7 @@ az webapp log tail -g rg-sahl-dev-sdc -n app-sahl-dev-sdc-vmi3r3      # watch it
 | See live logs (Laravel logs to stderr) | `az webapp log tail -g rg-sahl-dev-sdc -n app-sahl-dev-sdc-vmi3r3` |
 | Restart | `az webapp restart -g rg-sahl-dev-sdc -n app-sahl-dev-sdc-vmi3r3` |
 | Shell inside the app container | Portal → the web app → **SSH**, or `https://app-sahl-dev-sdc-vmi3r3.scm.azurewebsites.net` |
-| Run a migration on Azure | From the Mac, as in [04](04-azure-postgres.md) step 4 (`DB_HOST=… php artisan migrate --force`) |
+| Run a migration on Azure | Automatic: `startup.sh` runs `migrate --force --isolated` on every start ([07](07-github-actions-deploy.md) step 5) |
 
 ---
 

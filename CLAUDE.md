@@ -44,7 +44,8 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 | `docs/journal/` | The dated work log (see above) |
 | `docs/setup/` | Step-by-step guides for everything the user did by hand in Azure/Entra (see above) |
 | `infra/main.bicep` | Azure resources (user-written Bicep): Postgres Flexible Server, App Service plan and web app (managed identity), Key Vault `kv-sahl-dev-sdc-vmi3r3` (secrets as Key Vault references), Sweden Central. Values in `infra/main.bicepparam`, `rg-sahl-dev-sdc`. Live at `https://app-sahl-dev-sdc-vmi3r3.azurewebsites.net` |
-| `infra/app-service/` | App Service glue: `nginx.conf` (web root `public/`), `startup.sh` (startup command), `package.sh` (builds `build/sahl.zip`; deploy with `az webapp deploy`) |
+| `infra/app-service/` | App Service glue: `nginx.conf` (web root `public/`), `startup.sh` (startup command: nginx config, `optimize`, `migrate --force --isolated`), `package.sh` (builds `build/sahl.zip`; manual deploy with `az webapp deploy`) |
+| `.github/workflows/deploy.yml` | CI/CD: every push to `main` runs the tests (Postgres 17 service), packages with `package.sh` and deploys via OIDC (identity `id-sahl-github`, Website Contributor on the web app only). No secrets in GitHub, only repository variables |
 
 ## Conventions
 
