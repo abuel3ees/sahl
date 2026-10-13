@@ -26,3 +26,5 @@ Every step of the project, in order. Each folder is named `YYYY-MM-DD_HHMM_topic
 | 2026-10-11 23:26 | Citizen request form and tracking | [open](2026-10-11_2326_citizen-request-form/README.md) |
 | 2026-10-11 23:39 | Certificate PDF with QR code | [open](2026-10-11_2339_certificate-pdf/README.md) |
 | 2026-10-12 16:08 | Postgres 17 in Docker (OrbStack), tests on Postgres ([setup guide](../setup/03-docker-postgres-local.md)) | [open](2026-10-12_1608_postgres-docker/README.md) |
+| 2026-10-12 23:00 | V1 on Azure: Postgres + App Service, live ([setup 04](../setup/04-azure-postgres.md), [05](../setup/05-azure-app-service.md)) | [open](2026-10-12_2300_v1-on-azure/README.md) |
+| 2026-10-13 12:09 | Key Vault + managed identity, sign-in works on Azure ([setup 06](../setup/06-key-vault-sign-in.md)) | [open](2026-10-13_1209_key-vault-sign-in/README.md) |

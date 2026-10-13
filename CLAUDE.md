@@ -16,7 +16,7 @@ After every unit of work, add a folder `docs/journal/YYYY-MM-DD_HHMM_short-topic
 
 ## Setup guides for manual steps (always do this)
 
-Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, secrets), document every step they did in its own file `docs/setup/NN-topic.md` (numbered in order): what was clicked or typed, the exact values used (never secrets), the result, and a checklist for redoing it. The user will move to a new Azure account later and must be able to repeat everything from these files. Link the guide from that piece of work's journal entry.
+Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, secrets), document every step they did in its own file `docs/setup/NN-topic.md` (numbered in order): what was clicked or typed, the exact values used (never secrets), the result, and a checklist for redoing it. The user must be able to rebuild everything from these files (for example after deleting the resource group). Link the guide from that piece of work's journal entry.
 
 ## Working agreements
 
@@ -43,6 +43,8 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 | `docs/learning/`, `docs/architecture/erd.md` | Study guides and the full (future) data model |
 | `docs/journal/` | The dated work log (see above) |
 | `docs/setup/` | Step-by-step guides for everything the user did by hand in Azure/Entra (see above) |
+| `infra/main.bicep` | Azure resources (user-written Bicep): Postgres Flexible Server, App Service plan and web app (managed identity), Key Vault `kv-sahl-dev-sdc-vmi3r3` (secrets as Key Vault references), Sweden Central. Values in `infra/main.bicepparam`, `rg-sahl-dev-sdc`. Live at `https://app-sahl-dev-sdc-vmi3r3.azurewebsites.net` |
+| `infra/app-service/` | App Service glue: `nginx.conf` (web root `public/`), `startup.sh` (startup command), `package.sh` (builds `build/sahl.zip`; deploy with `az webapp deploy`) |
 
 ## Conventions
 
