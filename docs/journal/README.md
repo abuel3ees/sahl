@@ -31,3 +31,4 @@ Every step of the project, in order. Each folder is named `YYYY-MM-DD_HHMM_topic
 | 2026-10-13 13:28 | Deploy from GitHub Actions with OIDC ([setup 07](../setup/07-github-actions-deploy.md)) | [open](2026-10-13_1328_github-actions-deploy/README.md) |
 | 2026-10-13 15:05 | Migrations on deploy; Postgres sign-in with the managed identity ([setup 08](../setup/08-postgres-entra-sign-in.md)) | [open](2026-10-13_1505_migrations-and-postgres-entra/README.md) |
 | 2026-10-13 15:20 | Monitoring: Log Analytics, App Insights, availability alert ([setup 09](../setup/09-monitoring.md)) | [open](2026-10-13_1520_monitoring/README.md) |
+| 2026-10-13 17:00 | README in the Sahl design: screenshots, flow and architecture diagrams | [open](2026-10-13_1700_readme/README.md) |
