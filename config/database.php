@@ -97,6 +97,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Sign in with the web app's managed identity: the password is an Entra token (App\Database\EntraPostgresConnector).
+            'entra_auth' => (bool) env('DB_ENTRA_AUTH', false),
         ],
 
         'sqlsrv' => [

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Auth\EntraExternalIdProvider;
+use App\Database\EntraPostgresConnector;
 use App\Models\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -23,7 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // On Azure the app signs in to Postgres with its managed identity (DB_ENTRA_AUTH). Laravel looks this binding up by name.
+        $this->app->bind('db.connector.pgsql', EntraPostgresConnector::class);
     }
 
     /**
