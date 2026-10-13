@@ -25,7 +25,11 @@ var siteName = 'app-sahl-dev-sdc-${suffix}'
 var vaultName = 'kv-sahl-dev-sdc-${suffix}'
 var appUrl = 'https://${siteName}.azurewebsites.net'
 
+// The GitHub repo whose `main` branch may deploy the app (GitHub Actions, .github/workflows/deploy.yml).
+var githubRepo = 'abuel3ees/sahl'
+
 // Built-in role IDs (the same in every tenant).
+var websiteContributor = 'de139f84-1756-47ae-9be6-808fbbe84772'
 var keyVaultSecretsUser = '4633458b-17de-408a-b874-0445c86b69e6'
 var keyVaultSecretsOfficer = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
 
@@ -199,6 +203,37 @@ resource adminManagesSecrets 'Microsoft.Authorization/roleAssignments@2022-04-01
   }
 }
 
+// GitHub Actions' identity in Azure. No password: Azure trusts the short-lived tokens GitHub issues to the workflow (OIDC).
+resource githubIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'id-sahl-github'
+  location: location
+
+  // Trusted: tokens for workflows running on the main branch of this repo. Forks, pull requests and other branches are not.
+  resource mainBranch 'federatedIdentityCredentials' = {
+    name: 'github-main'
+    properties: {
+      issuer: 'https://token.actions.githubusercontent.com'
+      subject: 'repo:${githubRepo}:ref:refs/heads/main'
+      audiences: [
+        'api://AzureADTokenExchange'
+      ]
+    }
+  }
+}
+
+// GitHub may deploy code to the web app, and nothing else (not the database, not the vault).
+resource githubDeploysApp 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: webapp
+  name: guid(webapp.id, githubIdentity.id, websiteContributor)
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', websiteContributor)
+    principalId: githubIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 output serverFqdn string = postgres.properties.fullyQualifiedDomainName
 output appUrl string = 'https://${webapp.properties.defaultHostName}'
 output vaultName string = vault.name
+// Goes into GitHub as the variable AZURE_CLIENT_ID (not a secret).
+output githubClientId string = githubIdentity.properties.clientId
