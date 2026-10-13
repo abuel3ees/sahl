@@ -13,6 +13,9 @@ param adminPrincipalId string
 // Your sign-in name (`az ad signed-in-user show --query userPrincipalName -o tsv`): your Postgres role is named after it.
 param adminPrincipalName string
 
+// Where alerts are emailed. Read from your shell (SAHL_ALERT_EMAIL), so the address stays out of the public repo.
+param alertEmail string
+
 // Entra app registrations (IDs, not secrets). The client secrets live in Key Vault.
 param entraTenantId string
 param entraClientId string
@@ -252,6 +255,131 @@ resource githubDeploysApp 'Microsoft.Authorization/roleAssignments@2022-04-01' =
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', websiteContributor)
     principalId: githubIdentity.properties.principalId
     principalType: 'ServicePrincipal'
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Monitoring. PHP has no Application Insights agent, so the data comes from App Service's own logs (no code changes).
+
+// Log Analytics: the store for logs and metrics, queried with KQL. The daily cap stops a logging bug from running up a bill.
+resource workspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
+  name: 'log-sahl-dev-sdc'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
+    workspaceCapping: {
+      dailyQuotaGb: json('0.1')
+    }
+  }
+}
+
+// Application Insights: the monitoring views (availability, failures) on top of the workspace.
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appi-sahl-dev-sdc'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: workspace.id
+  }
+}
+
+// Sends the web app's logs to the workspace: every request (status, duration), Laravel's stderr, and starts/crashes.
+resource webappDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: webapp
+  name: 'to-log-analytics'
+  properties: {
+    workspaceId: workspace.id
+    logs: [
+      { category: 'AppServiceHTTPLogs', enabled: true }
+      { category: 'AppServiceConsoleLogs', enabled: true }
+      { category: 'AppServicePlatformLogs', enabled: true }
+    ]
+    metrics: [
+      { category: 'AllMetrics', enabled: true }
+    ]
+  }
+}
+
+// Availability test: every 5 minutes, three European locations call /up and expect 200.
+// The hidden-link tag is what shows the test under the Application Insights resource in the portal.
+var upTestName = 'avail-sahl-up'
+resource upTest 'Microsoft.Insights/webtests@2022-06-15' = {
+  name: upTestName
+  location: location
+  kind: 'standard'
+  tags: {
+    'hidden-link:${appInsights.id}': 'Resource'
+  }
+  properties: {
+    SyntheticMonitorId: upTestName
+    Name: 'Sahl /up'
+    Kind: 'standard'
+    Enabled: true
+    Frequency: 300
+    Timeout: 30
+    RetryEnabled: true
+    Locations: [
+      { Id: 'emea-nl-ams-azr' } // West Europe
+      { Id: 'emea-gb-db3-azr' } // North Europe
+      { Id: 'emea-fr-pra-edge' } // France Central
+    ]
+    Request: {
+      RequestUrl: '${appUrl}/up'
+      HttpVerb: 'GET'
+      ParseDependentRequests: false
+    }
+    ValidationRules: {
+      ExpectedHttpStatusCode: 200
+      SSLCheck: true
+      SSLCertRemainingLifetimeCheck: 7
+    }
+  }
+}
+
+// Who gets told: an email to you.
+resource opsEmail 'Microsoft.Insights/actionGroups@2023-01-01' = {
+  name: 'ag-sahl-ops'
+  location: 'global'
+  properties: {
+    groupShortName: 'sahl-ops'
+    enabled: true
+    emailReceivers: [
+      {
+        name: 'owner'
+        emailAddress: alertEmail
+        useCommonAlertSchema: true
+      }
+    ]
+  }
+}
+
+// The alert: Sahl is down when 2 of the 3 locations fail the test.
+resource siteDownAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'alert-sahl-down'
+  location: 'global'
+  properties: {
+    description: 'Sahl /up fails from at least 2 of 3 locations.'
+    severity: 1
+    enabled: true
+    scopes: [
+      upTest.id
+      appInsights.id
+    ]
+    evaluationFrequency: 'PT1M'
+    windowSize: 'PT5M'
+    criteria: {
+      'odata.type': 'Microsoft.Azure.Monitor.WebtestLocationAvailabilityCriteria'
+      webTestId: upTest.id
+      componentId: appInsights.id
+      failedLocationCount: 2
+    }
+    actions: [
+      { actionGroupId: opsEmail.id }
+    ]
   }
 }
 

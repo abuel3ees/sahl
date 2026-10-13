@@ -100,6 +100,14 @@ az deployment group create -g rg-sahl-dev-sdc --parameters infra/main.bicepparam
 
 Changing App Settings restarts the app. `startup.sh` then runs the migrations with the token too.
 
+**Order matters:** the code from step 3 must be live first, or the app tries to sign in as `app-sahl-dev-sdc-vmi3r3` with no password.
+
+**Result (2026-10-13):**
+- Run `38393293559` (PR #5) was green, then the Bicep deploy ran.
+- The App Settings have `DB_USERNAME=app-sahl-dev-sdc-vmi3r3` and `DB_ENTRA_AUTH=true`, and no `DB_PASSWORD`.
+- `/`, `/login` and `/verify` return 200. A request to `/login` wrote its session row to Postgres seconds later, so the app reads and writes with its token.
+- The logs show no authentication errors.
+
 ## Migrations and seeds from the Mac (from now on)
 
 Your Entra token replaces the `sahladmin` password:

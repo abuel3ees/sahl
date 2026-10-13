@@ -11,6 +11,8 @@ param adminPrincipalId = '46ca405c-0005-44b3-a769-ad6adaf6cb9c'
 // Your sign-in name contains your email address, so it is read from the shell instead of being published in the repo:
 // export SAHL_ADMIN_UPN=$(az ad signed-in-user show --query userPrincipalName -o tsv)
 param adminPrincipalName = readEnvironmentVariable('SAHL_ADMIN_UPN')
+// Alert emails go here; also kept out of the repo: export SAHL_ALERT_EMAIL=you@example.com
+param alertEmail = readEnvironmentVariable('SAHL_ALERT_EMAIL')
 
 // Staff: workforce tenant swambfirehotmail.onmicrosoft.com, app "Sahl (local)"
 param entraTenantId = '509dc1f4-3b62-4fa1-8b0b-bf0943e3812f'
