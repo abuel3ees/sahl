@@ -1,6 +1,6 @@
 # Local development services for Sahl. Start with `docker compose up -d`.
 #
-# Only the database runs in a container for now; PHP and Vite run on the Mac
+# The database and the OpenTelemetry Collector run in containers; PHP and Vite run on the Mac
 # (`php artisan serve --port=8123`, `npm run dev`). On Azure the same role is
 # played by Azure Database for PostgreSQL (Flexible Server), version 17.
 
@@ -30,7 +30,20 @@ services:
       timeout: 5s
       retries: 10
 
+  otel:
+    # OpenTelemetry Collector: receives Laravel's traces and prints them (`docker compose logs -f otel`).
+    # On Azure the same job is done by an App Service sidecar that sends them to Application Insights.
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    ports:
+      - "4318:4318" # OTLP over HTTP
+    configs:
+      # The contrib image reads its config from this path.
+      - source: otel-collector
+        target: /etc/otelcol-contrib/config.yaml
+
 configs:
+  otel-collector:
+    file: ./infra/otel/collector.local.yaml
   create-testing-database:
     content: |
       SELECT 'CREATE DATABASE sahl_testing'

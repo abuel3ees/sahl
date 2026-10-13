@@ -1,6 +1,6 @@
 # 09 · Monitoring: Log Analytics, Application Insights, availability alert
 
-**Started:** 2026-10-13, resource group `rg-sahl-dev-sdc`. Builds on [05](05-azure-app-service.md).
+**Done:** 2026-10-13, resource group `rg-sahl-dev-sdc`. Builds on [05](05-azure-app-service.md).
 
 **Goal:** answer "is it up, what's slow, what failed" without touching the PHP code, and get an email when the site is down.
 
@@ -95,6 +95,20 @@ AppServiceConsoleLogs
 AppServicePlatformLogs
 | project TimeGenerated, Level, Message
 | order by TimeGenerated desc
+```
+
+**Result (2026-10-13, first ~10 minutes after the deploy at 12:14 UTC):**
+- All four tables receive data: `AppServicePlatformLogs`, `AppServiceConsoleLogs`, `AppServiceHTTPLogs` and `AppAvailabilityResults`.
+- Availability: France Central 2/2, West Europe 2/2, North Europe 2/3.
+- The one failure, at 12:13, was a `500` while the deploy restarted the app. One location failing doesn't fire the alert (it needs 2 of 3), which is why the rule is set up that way.
+
+**Query from the terminal** (no portal; the workspace ID is its `customerId`):
+
+```bash
+W=$(az monitor log-analytics workspace show -g rg-sahl-dev-sdc -n log-sahl-dev-sdc --query customerId -o tsv)
+az rest --method post --url "https://api.loganalytics.io/v1/workspaces/$W/query" --resource https://api.loganalytics.io \
+  --body '{"query":"AppAvailabilityResults | where TimeGenerated > ago(1h) | summarize passed=countif(Success), failed=countif(not(Success)) by Location"}' \
+  --query "tables[0].rows"
 ```
 
 ---

@@ -18,6 +18,11 @@
         "laravel/tinker": "^3.0",
         "mpdf/mpdf": "^8.3",
         "mpdf/qrcode": "^1.2",
+        "open-telemetry/exporter-otlp": "^1.4",
+        "open-telemetry/opentelemetry-auto-guzzle": "^1.5",
+        "open-telemetry/opentelemetry-auto-laravel": "^1.10",
+        "open-telemetry/opentelemetry-auto-pdo": "^0.5.0",
+        "open-telemetry/sdk": "^1.15",
         "socialiteproviders/microsoft": "^4.10"
     },
     "require-dev": {
@@ -90,7 +95,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "tbachert/spi": true
         }
     },
     "minimum-stability": "stable",
