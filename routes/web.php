@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\ApiReferenceController;
 use App\Http\Controllers\Web\Auth\CitizenSignInController;
 use App\Http\Controllers\Web\Auth\SignOutController;
 use App\Http\Controllers\Web\Auth\StaffSignInController;
+use App\Http\Controllers\Web\CertificateDownloadController;
 use App\Http\Controllers\Web\CertificateVerificationController;
 use App\Http\Controllers\Web\Citizen\AccountController;
 use App\Http\Controllers\Web\Citizen\ApplicationController as CitizenApplicationController;
@@ -38,6 +39,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('logout', SignOutController::class)->middleware('auth')->name('logout');
+
+Route::get('applications/{application}/certificate.pdf', CertificateDownloadController::class)->middleware('auth')->name('applications.certificate');
 
 Route::middleware(['auth', 'can:access-citizen-account'])->group(function () {
     Route::get('account', AccountController::class)->name('account');

@@ -16,7 +16,7 @@ After every unit of work, add a folder `docs/journal/YYYY-MM-DD_HHMM_short-topic
 
 ## Setup guides for manual steps (always do this)
 
-Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, secrets), document every step they did in its own file `docs/setup/NN-topic.md` (numbered in order): what was clicked or typed, the exact values used (never secrets), the result, and a checklist for redoing it. The user will move to a new Azure account later and must be able to repeat everything from these files. Link the guide from that piece of work's journal entry.
+Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, secrets), document every step they did in its own file `docs/setup/NN-topic.md` (numbered in order): what was clicked or typed, the exact values used (never secrets), the result, and a checklist for redoing it. The user must be able to rebuild everything from these files (for example after deleting the resource group). Link the guide from that piece of work's journal entry.
 
 ## Working agreements
 
@@ -35,6 +35,7 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 | `app/Actions/Auth/SignInCitizenWithEntra.php`, `app/Auth/EntraExternalIdProvider.php` | Citizen sign-in: Entra External ID (`entra_citizen` driver, `{domain}.ciamlogin.com`). Reads the `national_id` claim. One National ID per account; an unclaimed seeded citizen is claimed by the first sign-in with that ID. Citizen home: `/account`. Request form `/services/{slug}/apply`, which reuses the API's `StoreApplicationRequest` via `Web\SubmitApplicationRequest` (adds the declaration) |
 | `app/Actions/Auth/SignInStaffWithEntra.php` | Staff sign-in: Entra ID via Socialite (`entra` driver). App role `{CODE}.Reviewer` (e.g. `MOI.Reviewer`) decides the ministry; users are linked by `entra_object_id` |
 | `app/Policies/ApplicationPolicy.php` | Who can see/decide. Cross-tenant or other people's records return **404, not 403** |
+| `app/Certificates/CertificatePdf.php` | Certificate PDF (mPDF, Arabic shaping, QR to `/verify/{code}`), from the snapshot on download. Font: `resources/fonts/ibm-plex-sans-arabic/` (OFL). Later: generate once at issue, sign with Key Vault, store in immutable Blob |
 | `resources/js/` | React 19 + TypeScript + Inertia v3. `pages/`, `layouts/`, `components/site/`, `lib/i18n.tsx` |
 | `resources/css/app.css` | Design tokens ("Modernist": Archivo / IBM Plex Sans Arabic / Reem Kufi, red `#ec3013`, 2px rules, no radius) in Tailwind v4 `@theme` |
 | `docs/api/openapi.json` | Generated Swagger file. Regenerate with `php artisan scramble:export` after any API change |
@@ -42,6 +43,8 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 | `docs/learning/`, `docs/architecture/erd.md` | Study guides and the full (future) data model |
 | `docs/journal/` | The dated work log (see above) |
 | `docs/setup/` | Step-by-step guides for everything the user did by hand in Azure/Entra (see above) |
+| `infra/main.bicep` | Azure resources (user-written Bicep): Postgres Flexible Server, App Service plan and web app (managed identity), Key Vault `kv-sahl-dev-sdc-vmi3r3` (secrets as Key Vault references), Sweden Central. Values in `infra/main.bicepparam`, `rg-sahl-dev-sdc`. Live at `https://app-sahl-dev-sdc-vmi3r3.azurewebsites.net` |
+| `infra/app-service/` | App Service glue: `nginx.conf` (web root `public/`), `startup.sh` (startup command), `package.sh` (builds `build/sahl.zip`; deploy with `az webapp deploy`) |
 
 ## Conventions
 
@@ -53,7 +56,7 @@ Whenever the user does something by hand (Azure portal, Entra, CLI, accounts, se
 
 ## Running locally
 
-- Database: SQLite for now. Docker/Postgres comes later. Run `php artisan migrate:fresh --seed`. That includes `DemoApplicationSeeder`: 8 MOI requests, 2 of them overdue. Staff created by Entra sign-in are recreated on their next sign-in.
+- Database: **Postgres 17 in Docker** (OrbStack engine): `docker compose up -d` (`compose.yaml`, service `pgsql`, port 5432, db/user `sahl`, password `secret`). Tests use the `sahl_testing` database in the same container (`phpunit.xml`), so the container must be running for tests. Run `php artisan migrate:fresh --seed`. That includes `DemoApplicationSeeder`: 8 MOI requests, 2 of them overdue. Staff created by Entra sign-in are recreated on their next sign-in.
 - Serve on **port 8123**. Port 8000 is used by another of the user's projects (`loqmah`). Run `php artisan serve --port=8123`, plus `npm run dev`; the user often has Vite running already.
 - Open the app at **`http://localhost:8123`** (not `127.0.0.1`): Entra only returns to the registered redirect URI. Staff sign in with the Entra test reviewer (`ENTRA_*` in `.env`). Citizens sign up or sign in with Sahl ID, which is Entra External ID (`ENTRA_CITIZEN_*`).
 - Demo accounts (password `password`, API and seeded data): citizen `28763404821`, citizen `29163401177`, reviewer `reviewer@moi.sahl.test`.

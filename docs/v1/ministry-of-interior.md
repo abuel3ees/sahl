@@ -250,6 +250,7 @@ The public pages follow the **"Poster" direction** of the Sahl design: a full re
 | This document | `/docs/ministry-of-interior` | `resources/js/pages/docs/show.tsx`. This Markdown file, rendered on the server. Diagrams are drawn by Mermaid in the browser |
 | Verify a certificate (public) | `/verify`, `/verify/{code}` | `resources/js/pages/verify/`. No sign-in. Valid / expired / not found, with the same masked data as the API and the same 30-a-minute limit. **This is what the QR code opens** (`verification_url`) |
 | Sign in | `/login` | `resources/js/pages/auth/login.tsx`. Citizens continue to **Sahl ID** (Entra External ID), staff to **Microsoft Entra ID** |
+| Certificate PDF | `/applications/{id}/certificate.pdf` | `app/Certificates/CertificatePdf.php` + `resources/views/certificates/good-conduct.blade.php`. A4, in the language the applicant chose, rendered by **mPDF** from the issue-time snapshot. The QR opens `/verify/{code}`. "Demonstration" watermark. For the applicant and the issuing ministry's reviewers only; anyone else gets 404 |
 | Request a certificate (citizen) | `/services/good-conduct-certificate/apply` | `resources/js/pages/citizen/apply.tsx`. Two steps (fill in, then review), purpose cards, optional addressee, certificate language, declaration. Same rules as `POST /api/v1/applications`, plus the declaration |
 | My account and my request (citizen) | `/account`, `/account/applications/{id}` | `resources/js/pages/citizen/`. Status, "decision due by" date (working days), progress timeline, rejection reason, and the verification code once approved |
 | Review queue (back office) | `/staff` | `resources/js/pages/staff/applications/index.tsx`. The reviewer's ministry only, waiting requests oldest first, with the SLA clock |
@@ -317,11 +318,9 @@ php artisan scramble:export      # writes docs/api/openapi.json
 
 | Later | Notes |
 |---|---|
-| PDF certificate with QR image | Next step. The verification code and URL already exist |
-| Web sign-in, "Start request", "Track a request" and "Verify" pages | The buttons are in place; the screens come after the PDF. The API behind them already works |
-| Sign-in with Entra ID | The token sign-in here is a local stand-in |
+| Verified National ID (mock *Al-Wahah National Digital ID*) | V2. In V1 citizens self-declare it at sign-up |
 | Payment of the QAR 50 fee | The fee is stored and displayed only |
 | Document uploads, corrections, "request more info" | Needs Blob Storage |
 | Email notifications | Azure Communication Services |
 | More ministries and services | The schema already supports them (`gov_entity_id` everywhere) |
-| PostgreSQL | V1 runs on SQLite locally. The code is portable |
+| Azure Database for PostgreSQL | Locally, Postgres 17 runs in Docker (`compose.yaml`). The Azure server comes with the infrastructure |

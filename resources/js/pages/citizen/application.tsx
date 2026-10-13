@@ -158,15 +158,22 @@ function NextStep({ application, decisionDueBy }: Props) {
                             {certificate.expires_at ? <DateText value={certificate.expires_at} /> : t({ en: 'No expiry', ar: 'بلا انتهاء' })}
                         </span>
                     </span>
-                    <a
-                        href={certificate.verification_url}
-                        className="mt-5 inline-flex items-center gap-3 border-2 border-paper px-4 py-2.5 font-semibold text-paper no-underline hover:bg-paper hover:text-ink"
-                    >
-                        {t({ en: 'Open the verification page', ar: 'فتح صفحة التحقق' })}
-                        <ArrowIcon size={18} />
-                    </a>
-                    <span className="mt-4 block text-[14px] opacity-80">
-                        {t({ en: 'The downloadable PDF with a QR code comes in a later version.', ar: 'ملف PDF القابل للتنزيل برمز QR سيأتي في إصدار لاحق.' })}
+                    <span className="mt-5 flex flex-wrap gap-3">
+                        <a
+                            href={`/applications/${application.id}/certificate.pdf`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-3 bg-accent px-4 py-2.5 font-display font-extrabold text-paper no-underline hover:bg-accent-600"
+                        >
+                            {t({ en: 'Download certificate (PDF)', ar: 'تنزيل الشهادة (PDF)' })}
+                            <ArrowIcon size={18} />
+                        </a>
+                        <a
+                            href={certificate.verification_url}
+                            className="inline-flex items-center gap-3 border-2 border-paper px-4 py-2 font-semibold text-paper no-underline hover:bg-paper hover:text-ink"
+                        >
+                            {t({ en: 'Open the verification page', ar: 'فتح صفحة التحقق' })}
+                        </a>
                     </span>
                 </>
             )}

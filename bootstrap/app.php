@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // The language toggle is written by the browser, so it must stay a plain cookie.
         $middleware->encryptCookies(except: [SetLocale::COOKIE]);
 
+        // On Azure, App Service terminates HTTPS and forwards plain HTTP with X-Forwarded-* headers.
+        // The app is only reachable through that front end, so its headers are trusted.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             SetLocale::class,
             HandleInertiaRequests::class,
