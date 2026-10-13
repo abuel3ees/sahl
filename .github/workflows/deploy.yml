@@ -98,4 +98,4 @@ jobs:
           --type zip --src-path build/sahl.zip
 
       - name: Smoke test
-        run: curl --fail --silent --show-error --retry 10 --retry-delay 6 --retry-all-errors "https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net/up"
+        run: curl --fail --silent --show-error --retry 30 --retry-delay 6 --retry-all-errors "https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net/up"

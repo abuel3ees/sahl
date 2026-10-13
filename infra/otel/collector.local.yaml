@@ -1,0 +1,27 @@
+# OpenTelemetry Collector for local development (compose.yaml, service `otel`).
+# Every collector config has the same shape: receivers (data in) → processors (optional changes) → exporters (data out),
+# wired together per signal type in service.pipelines. On Azure only the exporter changes (to Application Insights).
+
+receivers:
+  otlp:
+    protocols:
+      # OTLP over HTTP: Laravel sends to http://localhost:4318/v1/traces.
+      # 0.0.0.0 so the port is reachable from outside the container (the Mac).
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Sends spans in batches instead of one by one.
+  batch:
+
+exporters:
+  # Prints every span to the container's output: `docker compose logs -f otel`.
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
