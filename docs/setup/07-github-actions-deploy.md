@@ -1,6 +1,6 @@
 # 07 · Deploy from GitHub Actions (OIDC, no secrets)
 
-**Started:** 2026-10-13, current subscription, resource group `rg-sahl-dev-sdc`. Builds on [05](05-azure-app-service.md) and [06](06-key-vault-sign-in.md).
+**Done:** 2026-10-13, current subscription, resource group `rg-sahl-dev-sdc`. Builds on [05](05-azure-app-service.md) and [06](06-key-vault-sign-in.md).
 
 **Goal:** every push to `main` runs the tests, builds the app and deploys it to **https://app-sahl-dev-sdc-vmi3r3.azurewebsites.net**. You no longer run `package.sh` and `az webapp deploy` on your Mac.
 
@@ -24,7 +24,8 @@
 - **Sign-in: OIDC with a user-assigned managed identity**, defined in Bicep. This was chosen over a publish profile or a client secret: there's no long-lived password, and nothing expires.
 - **Trigger:** push to `main`, plus a manual "Run workflow" button.
 - **Tests gate the deploy:** if a test fails, nothing is deployed.
-- **Not in the pipeline yet:** migrations (they still run from the Mac) and the Bicep deploy.
+- **Migrations run on App Service at start-up** (step 5), not in GitHub. GitHub never needs database access.
+- **Still manual:** the Bicep deploy and seeding.
 
 ## Step 1: Infrastructure (Bicep)
 
@@ -76,11 +77,29 @@ gh variable list
 
 ## Step 4: Merge to main and watch it
 
+**Result (2026-10-13):** the first run failed at the Azure sign-in (the subject without IDs, see step 1). Run `38382808700` (PR #3) was green in 6 min 30 s: tests, build, deploy, `/up` 200.
+
 Commit, push, and merge your branch into `main`. Then follow the run under **GitHub → Actions → Deploy**, or with:
 
 ```bash
 gh run watch
 ```
+
+## Step 5: Migrations on every start (2026-10-13)
+
+`infra/app-service/startup.sh` now ends with:
+
+```bash
+php artisan migrate --force --isolated
+```
+
+- **When it runs:** every deploy restarts the app, so the new code and its migrations go live together.
+- **Why `--isolated`:** it takes a lock in the cache store (the `cache_locks` table), so two instances can't migrate at once.
+- **If a migration fails:** the start stops (`set -e`), the smoke test fails, and the run turns red. The cause is in `az webapp log tail`.
+- **Why not from GitHub:** the database firewall would have to open to the runner's changing IP, and GitHub would need database credentials.
+- **Seeding stays manual from the Mac:** the seeders use factories, and Faker isn't in the production `vendor/`.
+
+**Rule for migrations from now on:** write them so the *old* code still works with the *new* schema. For example, add a column first and remove the old one in a later deploy. The app is briefly running old code against the new schema while it restarts.
 
 ---
 

@@ -11,3 +11,7 @@ mkdir -p storage/framework/{cache/data,sessions,views} storage/logs bootstrap/ca
 
 # Cache config, routes, views and events with the App Settings of this environment.
 php artisan optimize
+
+# Bring the database schema up to date with the code just deployed. --isolated takes a lock in the cache store,
+# so two instances starting together never migrate at the same time. A failing migration stops the start (set -e).
+php artisan migrate --force --isolated

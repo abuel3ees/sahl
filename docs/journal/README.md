@@ -28,3 +28,4 @@ Every step of the project, in order. Each folder is named `YYYY-MM-DD_HHMM_topic
 | 2026-10-12 16:08 | Postgres 17 in Docker (OrbStack), tests on Postgres ([setup guide](../setup/03-docker-postgres-local.md)) | [open](2026-10-12_1608_postgres-docker/README.md) |
 | 2026-10-12 23:00 | V1 on Azure: Postgres + App Service, live ([setup 04](../setup/04-azure-postgres.md), [05](../setup/05-azure-app-service.md)) | [open](2026-10-12_2300_v1-on-azure/README.md) |
 | 2026-10-13 12:09 | Key Vault + managed identity, sign-in works on Azure ([setup 06](../setup/06-key-vault-sign-in.md)) | [open](2026-10-13_1209_key-vault-sign-in/README.md) |
+| 2026-10-13 13:28 | Deploy from GitHub Actions with OIDC ([setup 07](../setup/07-github-actions-deploy.md)) | [open](2026-10-13_1328_github-actions-deploy/README.md) |
