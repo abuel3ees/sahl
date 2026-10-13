@@ -1,0 +1,101 @@
+# Tests, builds and deploys Sahl to App Service on every push to main (or by hand: Actions → Deploy → Run workflow).
+# Signs in to Azure with OIDC: no secrets. The identity and its trust are in infra/main.bicep (id-sahl-github).
+# Guide: docs/setup/07-github-actions-deploy.md
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# id-token: write lets the workflow ask GitHub for the OIDC token that Azure trusts.
+permissions:
+  id-token: write
+  contents: read
+
+# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Postgres 17 for the tests, like the local Docker container.
+    services:
+      pgsql:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: sahl
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: sahl_testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sahl"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, gd, pdo_pgsql, pgsql, zip, intl
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Prepare .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test --compact
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, gd, pdo_pgsql, pgsql, zip, intl
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      # Builds build/sahl.zip: assets, production vendor/, no local files (the same script as on the Mac).
+      - name: Package
+        run: infra/app-service/package.sh
+
+      - name: Sign in to Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to App Service
+        run: >-
+          az webapp deploy
+          --resource-group ${{ vars.AZURE_RESOURCE_GROUP }}
+          --name ${{ vars.AZURE_WEBAPP_NAME }}
+          --type zip --src-path build/sahl.zip
+
+      - name: Smoke test
+        run: curl --fail --silent --show-error --retry 10 --retry-delay 6 --retry-all-errors "https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net/up"
