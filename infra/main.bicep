@@ -26,7 +26,9 @@ var vaultName = 'kv-sahl-dev-sdc-${suffix}'
 var appUrl = 'https://${siteName}.azurewebsites.net'
 
 // The GitHub repo whose `main` branch may deploy the app (GitHub Actions, .github/workflows/deploy.yml).
-var githubRepo = 'abuel3ees/sahl'
+// GitHub's OIDC tokens name it as owner@ownerId/repo@repoId: the numeric IDs stop a re-created account or repo
+// with the same name from inheriting the trust. Look them up: gh api repos/abuel3ees/sahl --jq '.owner.id, .id'
+var githubRepo = 'abuel3ees@170485164/sahl@1414746207'
 
 // Built-in role IDs (the same in every tenant).
 var websiteContributor = 'de139f84-1756-47ae-9be6-808fbbe84772'
