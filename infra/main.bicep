@@ -170,6 +170,43 @@ resource webapp 'Microsoft.Web/sites@2025-03-01' = {
         { name: 'ENTRA_CITIZEN_CLIENT_SECRET', value: vaultRef(vaultName, 'entra-citizen-client-secret') }
         { name: 'ENTRA_CITIZEN_REDIRECT_URI', value: '${appUrl}/auth/citizen/callback' }
         { name: 'ENTRA_CITIZEN_DOMAIN', value: entraCitizenDomain }
+        // Tracing (OpenTelemetry): PHP sends spans to the collector sidecar on localhost:4318, which forwards them
+        // to Application Insights. These must be real environment variables: the SDK starts before Laravel reads config.
+        { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.properties.ConnectionString }
+        { name: 'OTEL_PHP_AUTOLOAD_ENABLED', value: 'true' }
+        { name: 'OTEL_SERVICE_NAME', value: 'sahl' }
+        { name: 'OTEL_TRACES_EXPORTER', value: 'otlp' }
+        { name: 'OTEL_EXPORTER_OTLP_PROTOCOL', value: 'http/protobuf' }
+        { name: 'OTEL_EXPORTER_OTLP_ENDPOINT', value: 'http://localhost:4318' }
+        { name: 'OTEL_METRICS_EXPORTER', value: 'none' }
+        { name: 'OTEL_LOGS_EXPORTER', value: 'none' }
+      ]
+    }
+  }
+
+  // Sidecar: the OpenTelemetry Collector, running next to PHP. It receives spans on localhost:4318 and sends them to
+  // Application Insights. Its config (infra/otel/azure/config.yaml) is read from the deployed code on /home.
+  resource otelCollector 'sitecontainers' = {
+    name: 'otel-collector'
+    properties: {
+      image: 'otel/opentelemetry-collector-contrib:0.161.0'
+      // The built-in PHP container is the main one (it gets the web traffic); this one only helps.
+      isMain: false
+      targetPort: '4318'
+      // Sidecars don't get App Settings automatically. Each entry copies one in: value is the App Setting's NAME.
+      environmentVariables: [
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        }
+      ]
+      // The folder with config.yaml, mounted where the image looks for it.
+      volumeMounts: [
+        {
+          volumeSubPath: '/home/site/wwwroot/infra/otel/azure'
+          containerMountPath: '/etc/otelcol-contrib'
+          readOnly: true
+        }
       ]
     }
   }
@@ -271,7 +308,7 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
     }
     retentionInDays: 30
     workspaceCapping: {
-      dailyQuotaGb: json('0.1')
+      dailyQuotaGb: json('0.5')
     }
   }
 }

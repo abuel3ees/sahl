@@ -1,0 +1,27 @@
+# OpenTelemetry Collector on Azure: the App Service sidecar (infra/main.bicep, sitecontainers 'otel-collector').
+# The sidecar mounts this folder at /etc/otelcol-contrib, where the image looks for config.yaml.
+# Same shape as ../collector.local.yaml; only the exporter differs: Application Insights instead of the terminal.
+
+receivers:
+  otlp:
+    protocols:
+      # Laravel sends to http://localhost:4318: the sidecar shares the app's network, so localhost reaches it.
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Sends spans in batches instead of one by one.
+  batch:
+
+exporters:
+  # Application Insights. ${env:...} is read from the sidecar's environment when the collector starts;
+  # the sidecar gets it from the App Setting of the same name (environmentVariables in the Bicep).
+  azuremonitor:
+    connection_string: ${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [azuremonitor]
